@@ -2,9 +2,10 @@ name: Refresh Festival Data
 
 on:
   schedule:
-    # Runs every day at 9am UTC
-    # Dynamic logic inside refresh.py decides which festivals actually get checked
+    # Daily at 9am UTC — refresh.py decides which festivals actually get checked
     - cron: '0 9 * * *'
+    # Quarterly (1st of Jan, Apr, Jul, Oct) — Oscar qualifying sync
+    - cron: '0 9 1 1,4,7,10 *'
   workflow_dispatch:
     # Also manually triggerable from GitHub Actions UI
     inputs:
@@ -51,8 +52,8 @@ jobs:
           DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         run: python scripts/refresh.py
 
-      - name: Run Oscar qualifying update (Sundays only)
-        if: github.event_name == 'schedule' && startsWith(github.event.schedule, '0 9 * * 0')
+      - name: Run Oscar qualifying update (quarterly)
+        if: github.event.schedule == '0 9 1 1,4,7,10 *'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
