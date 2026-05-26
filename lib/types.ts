@@ -56,7 +56,7 @@ export const DEFAULT_FILTERS: FestivalFilters = {
   search: '',
   country: [],
   grade: [],
-  status: [],
+  status: ['open'],
   premiere_requirement: [],
   oscar_qualifying: 'all',
   maxPrice: null,

@@ -19,7 +19,6 @@ function sortFestivals(festivals: Festival[]): Festival[] {
   return [...festivals].sort((a, b) => {
     const statusDiff = (STATUS_ORDER[a.status] ?? 5) - (STATUS_ORDER[b.status] ?? 5)
     if (statusDiff !== 0) return statusDiff
-    // Within same status, soonest deadline first
     if (a.deadline && b.deadline) return a.deadline.localeCompare(b.deadline)
     if (a.deadline) return -1
     if (b.deadline) return 1
@@ -60,7 +59,7 @@ export function FestivalSearch() {
       .eq('is_archived', false)
       .order('deadline', { ascending: true, nullsFirst: false })
       .then(({ data, error }) => {
-        if (error) { console.error('Supabase error:', JSON.stringify(error), error.message, error.code); return }
+        if (error) { console.error('Supabase error:', JSON.stringify(error)); return }
         const rows = (data ?? []) as Festival[]
         setFestivals(rows)
         const unique = [...new Set(rows.map((r) => r.country))].sort()
@@ -72,39 +71,51 @@ export function FestivalSearch() {
   const filtered = useMemo(() => sortFestivals(applyFilters(festivals, filters)), [festivals, filters])
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-4 sm:p-6 max-w-7xl mx-auto">
-      <div className="lg:w-64 shrink-0">
-        <div className="lg:sticky lg:top-4">
-          <FilterPanel
-            filters={filters}
-            onChange={setFilters}
-            countries={countries}
-            totalCount={festivals.length}
-            filteredCount={filtered.length}
-          />
-        </div>
-      </div>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 60px' }}>
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
 
-      <div className="flex-1 min-w-0">
-        {loading ? (
-          <div className="text-center py-20 text-neutral-500 text-sm">Loading festivals…</div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-20 text-neutral-500">
-            <p className="text-lg mb-2">No festivals match your filters</p>
-            <button
-              onClick={() => setFilters(DEFAULT_FILTERS)}
-              className="text-amber-400 hover:text-amber-300 text-sm transition-colors"
-            >
-              Clear all filters
-            </button>
-          </div>
-        ) : (
-          <div className="grid gap-3">
-            {filtered.map((f) => (
-              <FestivalCard key={f.id} festival={f} />
-            ))}
-          </div>
-        )}
+        {/* Sidebar — desktop only, mobile toggle inside FilterPanel */}
+        <FilterPanel
+          filters={filters}
+          onChange={setFilters}
+          countries={countries}
+          totalCount={festivals.length}
+          filteredCount={filtered.length}
+        />
+
+        {/* Results */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
+              Loading festivals…
+            </div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '80px 20px', color: 'rgba(255,255,255,0.3)' }}>
+              <p style={{ fontSize: 16, marginBottom: 12 }}>No festivals match your filters</p>
+              <button
+                onClick={() => setFilters(DEFAULT_FILTERS)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'rgba(140,100,255,0.7)', fontFamily: 'inherit', fontSize: 14,
+                }}
+              >
+                Reset all filters
+              </button>
+            </div>
+          ) : (
+            <>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
+                Showing <span style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>{filtered.length}</span>
+                {' '}of {festivals.length} festivals
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {filtered.map((f) => (
+                  <FestivalCard key={f.id} festival={f} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

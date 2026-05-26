@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, notFound } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Festival, PREMIERE_LABELS, GRADE_LABELS } from '@/lib/types'
@@ -20,14 +20,25 @@ function formatPrice(price: number | null) {
   return `$${price}`
 }
 
-function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
-  if (!value) return null
+function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
+  if (!children) return null
   return (
-    <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 py-3 border-b border-neutral-800">
-      <dt className="text-sm text-neutral-500 sm:w-44 shrink-0">{label}</dt>
-      <dd className="text-sm text-neutral-200">{value}</dd>
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
+      gap: 16,
+    }}>
+      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', fontWeight: 500, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', fontWeight: 500, textAlign: 'right' }}>{children}</span>
     </div>
   )
+}
+
+const GRADE_STYLES: Record<string, React.CSSProperties> = {
+  A: { background: 'rgba(167,139,250,0.2)', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.3)' },
+  B: { background: 'rgba(96,165,250,0.2)',  color: '#60a5fa', border: '1px solid rgba(96,165,250,0.3)' },
+  C: { background: 'rgba(110,231,183,0.2)', color: '#6ee7b7', border: '1px solid rgba(110,231,183,0.3)' },
+  D: { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.1)' },
 }
 
 export default function FestivalPage() {
@@ -47,20 +58,20 @@ export default function FestivalPage() {
 
   if (festival === 'loading') {
     return (
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        <div className="text-neutral-500 text-sm">Loading…</div>
-      </main>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Loading…</div>
+      </div>
     )
   }
 
   if (!festival) {
     return (
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        <p className="text-neutral-400">Festival not found.</p>
-        <Link href="/" className="text-amber-400 hover:text-amber-300 text-sm mt-4 inline-block">
+      <div style={{ maxWidth: 600, margin: '60px auto', padding: '0 20px', textAlign: 'center' }}>
+        <p style={{ color: 'rgba(255,255,255,0.4)', marginBottom: 16 }}>Festival not found.</p>
+        <Link href="/" className="glass-btn" style={{ textDecoration: 'none', display: 'inline-flex' }}>
           ← Back to search
         </Link>
-      </main>
+      </div>
     )
   }
 
@@ -77,94 +88,149 @@ export default function FestivalPage() {
     : festival_dates_raw || null
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <nav className="text-sm text-neutral-500 mb-6">
-        <Link href="/" className="hover:text-neutral-300 transition-colors">Search</Link>
-        <span className="mx-2">/</span>
-        <span className="text-neutral-300">{name}</span>
-      </nav>
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 16px 60px' }}>
+      {/* Back nav */}
+      <div style={{ marginBottom: 20 }}>
+        <Link
+          href="/"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontSize: 13, color: 'rgba(255,255,255,0.4)',
+            textDecoration: 'none', transition: 'color 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+        >
+          ← Discover
+        </Link>
+      </div>
 
-      <div className="mb-8">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-3xl font-bold text-white">{name}</h1>
-            <p className="text-neutral-400 mt-1">{city ? `${city}, ${country}` : country}</p>
+      {/* Main card */}
+      <div
+        className="glass-sidebar detail-scroll"
+        style={{ padding: 0, overflow: 'hidden', borderRadius: 20 }}
+      >
+        {/* Header */}
+        <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.95)', lineHeight: 1.3 }}>
+                {name}
+              </h1>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ fontSize: 11 }}>◉</span>
+                {city ? `${city}, ${country}` : country}
+              </div>
+            </div>
+            <ShortlistButton id={id} name={name} size={26} />
           </div>
-          <ShortlistButton id={id} name={name} className="mt-1" />
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
+            <StatusPill status={status} />
+            {oscar_qualifying && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 500, lineHeight: '18px',
+                background: 'rgba(241,196,15,0.15)', color: '#f5d74e', border: '1px solid rgba(241,196,15,0.25)',
+              }}>
+                <span style={{ fontSize: 11 }}>⭐</span> Oscar Qualifying
+              </span>
+            )}
+            {grade && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', padding: '3px 10px',
+                borderRadius: 20, fontSize: 12, fontWeight: 500, lineHeight: '18px',
+                ...GRADE_STYLES[grade],
+              }}>
+                {GRADE_LABELS[grade]}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-4">
-          <StatusPill status={status} />
-          {oscar_qualifying && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border bg-amber-500/15 text-amber-400 border-amber-500/30">
-              Oscar Qualifying
-            </span>
+        {/* Body */}
+        <div style={{ padding: '8px 24px 24px' }}>
+          {/* Key details */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)', borderRadius: 14,
+            padding: '4px 18px', border: '1px solid rgba(255,255,255,0.05)',
+            marginTop: 16,
+          }}>
+            <MetaRow label="Status">
+              <StatusPill status={status} />
+            </MetaRow>
+            <MetaRow label="Deadline">{formatDate(deadline)}</MetaRow>
+            <MetaRow label="Early Deadline">{formatDate(early_deadline)}</MetaRow>
+            <MetaRow label="Entry Fee">
+              {formatPrice(submission_price_usd)}
+              {waiver_available && <span style={{ marginLeft: 8, fontSize: 12, color: 'rgba(140,100,255,0.7)' }}>(waiver available)</span>}
+            </MetaRow>
+            <MetaRow label="Festival Dates">{festivalDates}</MetaRow>
+            <MetaRow label="Premiere Requirement">{PREMIERE_LABELS[premiere_requirement]}</MetaRow>
+            <MetaRow label="Oscar Qualifying">{oscar_qualifying ? '⭐ Yes' : 'No'}</MetaRow>
+            {grade && <MetaRow label="Grade">{GRADE_LABELS[grade]}</MetaRow>}
+          </div>
+
+          {/* Notes */}
+          {notes && (
+            <div style={{
+              marginTop: 16, padding: 16, borderRadius: 12,
+              background: 'rgba(140,100,255,0.06)',
+              border: '1px solid rgba(140,100,255,0.12)',
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', color: 'rgba(140,100,255,0.6)', textTransform: 'uppercase', marginBottom: 6 }}>
+                Notes
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.6, color: 'rgba(255,255,255,0.6)', whiteSpace: 'pre-line' }}>
+                {notes}
+              </div>
+            </div>
           )}
-          {grade && (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border ${
-              grade === 'A' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
-              grade === 'B' ? 'bg-sky-500/20 text-sky-400 border-sky-500/40' :
-              grade === 'C' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
-              'bg-neutral-700/40 text-neutral-400 border-neutral-600'
-            }`}>
-              {GRADE_LABELS[grade]}
-            </span>
-          )}
+
+          {/* Last verified */}
+          <div style={{
+            marginTop: 12, padding: '10px 16px', borderRadius: 10,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8,
+            fontSize: 12, color: 'rgba(255,255,255,0.3)',
+          }}>
+            <span>🔍</span>
+            {last_checked_at && <>Last verified: <strong style={{ color: 'rgba(255,255,255,0.5)' }}>{formatDate(last_checked_at.split('T')[0])}</strong></>}
+            {enrichment_confidence && <span style={{ marginLeft: 4 }}>· Confidence: {enrichment_confidence}</span>}
+            {website_url && (
+              <a
+                href={website_url} target="_blank" rel="noopener noreferrer"
+                style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+              >
+                Official website ↗
+              </a>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
+            {submission_url && (
+              <a
+                href={submission_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-btn glass-btn-primary"
+                style={{ flex: 1, justifyContent: 'center', textDecoration: 'none', minWidth: 140 }}
+              >
+                Submit Your Film ↗
+              </a>
+            )}
+            <Link
+              href="/"
+              className="glass-btn"
+              style={{ flex: 1, justifyContent: 'center', textDecoration: 'none', minWidth: 140 }}
+            >
+              ← Back to search
+            </Link>
+          </div>
         </div>
       </div>
-
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5 mb-8">
-        <h2 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-4">
-          Submission Info
-        </h2>
-        <dl className="divide-y divide-neutral-800">
-          <DataRow label="Status" value={<span className="capitalize">{status.replace('_', ' ')}</span>} />
-          <DataRow label="Deadline" value={formatDate(deadline)} />
-          <DataRow label="Early Deadline" value={formatDate(early_deadline)} />
-          <DataRow label="Entry Fee" value={formatPrice(submission_price_usd)} />
-          {waiver_available && <DataRow label="Fee Waiver" value="Available" />}
-          <DataRow label="Festival Dates" value={festivalDates} />
-          <DataRow label="Premiere Requirement" value={PREMIERE_LABELS[premiere_requirement]} />
-          <DataRow label="Oscar Qualifying" value={oscar_qualifying ? 'Yes' : 'No'} />
-          {grade && <DataRow label="Grade" value={GRADE_LABELS[grade]} />}
-        </dl>
-
-        {submission_url && (
-          <a
-            href={submission_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-amber-500 text-black font-semibold text-sm hover:bg-amber-400 transition-colors"
-          >
-            Submit Your Film
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
-        )}
-      </div>
-
-      {notes && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5 mb-8">
-          <h2 className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-3">Notes</h2>
-          <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-line">{notes}</p>
-        </div>
-      )}
-
-      <div className="text-xs text-neutral-600 flex flex-wrap gap-x-4 gap-y-1">
-        {last_checked_at && (
-          <span>Last checked: {formatDate(last_checked_at.split('T')[0])}</span>
-        )}
-        {enrichment_confidence && (
-          <span>Data confidence: {enrichment_confidence}</span>
-        )}
-        {website_url && (
-          <a href={website_url} target="_blank" rel="noopener noreferrer"
-            className="text-neutral-500 hover:text-neutral-300 transition-colors">
-            Official website
-          </a>
-        )}
-      </div>
-    </main>
+    </div>
   )
 }
