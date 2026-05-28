@@ -316,26 +316,25 @@ export function FilterPanel({ filters, onChange, countries, totalCount, filtered
 
   return (
     <>
-      {/* Mobile toggle button */}
-      <div className="mobile-filter-btn" style={{ marginBottom: 12 }}>
+      {/* Mobile toggle button + drawer — only visible on <1024px */}
+      <div className="mobile-filter-btn">
         <button
           onClick={() => setMobileOpen((o) => !o)}
           className="glass-btn"
-          style={{ fontSize: 13 }}
+          style={{ fontSize: 13, marginBottom: 10 }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <line x1="4" y1="6" x2="20" y2="6" /><line x1="8" y1="12" x2="20" y2="12" /><line x1="12" y1="18" x2="20" y2="18" />
           </svg>
           Filters{activeDot}
         </button>
-      </div>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="glass-sidebar mobile-filter-btn" style={{ padding: 20, marginBottom: 16, display: 'block' }}>
-          {content}
-        </div>
-      )}
+        {mobileOpen && (
+          <div className="glass-sidebar" style={{ padding: 20, marginBottom: 16 }}>
+            {content}
+          </div>
+        )}
+      </div>
 
       {/* Desktop sidebar */}
       <aside

@@ -264,6 +264,24 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 0 0 12px rgba(140,100,255,0.3);
 }
 
+/* ── Search page layout ──────────────────────────────── */
+.search-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* Mobile: stack vertically so filters go ABOVE cards */
+@media (max-width: 1023px) {
+  .search-layout {
+    flex-direction: column;
+  }
+  .search-results {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 /* ── Mobile filter toggle ────────────────────────────── */
 .mobile-filter-btn {
   display: none;
@@ -271,7 +289,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 @media (max-width: 1023px) {
   .mobile-filter-btn {
-    display: inline-flex;
+    display: block;
   }
   .desktop-sidebar {
     display: none !important;

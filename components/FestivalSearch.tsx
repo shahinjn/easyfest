@@ -72,9 +72,9 @@ export function FestivalSearch() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 16px 60px' }}>
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+      <div className="search-layout">
 
-        {/* Sidebar — desktop only, mobile toggle inside FilterPanel */}
+        {/* Sidebar on desktop / toggle+drawer on mobile — inside FilterPanel */}
         <FilterPanel
           filters={filters}
           onChange={setFilters}
@@ -83,8 +83,8 @@ export function FestivalSearch() {
           filteredCount={filtered.length}
         />
 
-        {/* Results */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Results — flex:1 on desktop, full-width on mobile */}
+        <div className="search-results" style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>
               Loading festivals…
